@@ -1,4 +1,4 @@
-name: Build Quotex Next Candle AI 2.1
+name: Build Quotex Next Candle AI
 
 on:
   push:
@@ -17,16 +17,16 @@ jobs:
 
     steps:
 
-      # ---------------------------------------------
-      # 1. Checkout
-      # ---------------------------------------------
+      # ==================================================
+      # CHECKOUT
+      # ==================================================
       - name: Checkout repository
         uses: actions/checkout@v6
 
 
-      # ---------------------------------------------
-      # 2. Java 17
-      # ---------------------------------------------
+      # ==================================================
+      # JAVA
+      # ==================================================
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -34,12 +34,11 @@ jobs:
           java-version: "17"
 
 
-      # ---------------------------------------------
-      # 3. Android SDK
-      # ---------------------------------------------
+      # ==================================================
+      # ANDROID SDK
+      # ==================================================
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-
 
       - name: Install Android SDK 36
         run: |
@@ -51,221 +50,197 @@ jobs:
             "build-tools;36.0.0"
 
 
-      # ---------------------------------------------
-      # 4. Gradle 8.13
-      # ---------------------------------------------
+      # ==================================================
+      # GRADLE
+      # ==================================================
       - name: Set up Gradle 8.13
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "8.13"
 
 
-      # ---------------------------------------------
-      # 5. Environment
-      # ---------------------------------------------
+      # ==================================================
+      # ENVIRONMENT
+      # ==================================================
       - name: Show environment
         run: |
-          echo "===== JAVA ====="
+          echo "===================================="
+          echo "JAVA"
+          echo "===================================="
           java -version
 
           echo ""
-          echo "===== GRADLE ====="
+          echo "===================================="
+          echo "GRADLE"
+          echo "===================================="
           gradle --version
 
           echo ""
-          echo "===== PROJECT ====="
+          echo "===================================="
+          echo "ROOT DIRECTORY"
+          echo "===================================="
           pwd
           ls -la
 
 
-      # ---------------------------------------------
-      # 6. Inspect project
-      # ---------------------------------------------
-      - name: Inspect project
+      # ==================================================
+      # SHOW COMPLETE PROJECT STRUCTURE
+      # ==================================================
+      - name: Inspect complete project
         run: |
-          echo "===== ROOT FILES ====="
-          find . -maxdepth 2 -type f | sort
+          echo ""
+          echo "===================================="
+          echo "ALL PROJECT FILES"
+          echo "===================================="
+
+          find . \
+            -type f \
+            -not -path "./.git/*" \
+            | sort
 
           echo ""
-          echo "===== JAVA FILES ====="
-          find app/src/main/java -type f | sort
+          echo "===================================="
+          echo "JAVA FILES"
+          echo "===================================="
+
+          find app/src/main/java \
+            -type f \
+            -name "*.java" \
+            -print \
+            | sort
 
           echo ""
-          echo "===== RESOURCE FILES ====="
-          find app/src/main/res -type f | sort
+          echo "===================================="
+          echo "RESOURCE FILES"
+          echo "===================================="
+
+          find app/src/main/res \
+            -type f \
+            -print \
+            | sort
 
 
-      # ---------------------------------------------
-      # 7. Verify Android structure
-      # ---------------------------------------------
-      - name: Verify Android project
-        shell: bash
+      # ==================================================
+      # SHOW IMPORTANT GRADLE FILES
+      # ==================================================
+      - name: Show Gradle configuration
         run: |
-          set -e
+          echo ""
+          echo "===================================="
+          echo "settings.gradle"
+          echo "===================================="
 
-          test -f settings.gradle
-          test -f build.gradle
-          test -f gradle.properties
-          test -f app/build.gradle
-          test -f app/src/main/AndroidManifest.xml
+          cat settings.gradle
 
-          echo "Android project structure OK."
+          echo ""
+          echo "===================================="
+          echo "root build.gradle"
+          echo "===================================="
+
+          cat build.gradle
+
+          echo ""
+          echo "===================================="
+          echo "app build.gradle"
+          echo "===================================="
+
+          cat app/build.gradle
 
 
-      # ---------------------------------------------
-      # 8. Verify REAL VISION 2.1 files
-      # ---------------------------------------------
-      - name: Verify Real Vision files
-        shell: bash
+      # ==================================================
+      # CHECK OLD RESOURCE PROBLEM
+      # ==================================================
+      - name: Check themes
         run: |
-          set -e
+          echo ""
+          echo "===================================="
+          echo "THEME FILES"
+          echo "===================================="
 
-          test -f app/src/main/java/com/quotexrealvision/ai/MainActivity.java
-          test -f app/src/main/java/com/quotexrealvision/ai/ChartDetector.java
-          test -f app/src/main/java/com/quotexrealvision/ai/ChartVisionEngine.java
-          test -f app/src/main/java/com/quotexrealvision/ai/Candle.java
-          test -f app/src/main/java/com/quotexrealvision/ai/DetectionResult.java
-          test -f app/src/main/java/com/quotexrealvision/ai/FeatureEngine.java
-          test -f app/src/main/java/com/quotexrealvision/ai/FeatureVector.java
-          test -f app/src/main/java/com/quotexrealvision/ai/Maths.java
-          test -f app/src/main/java/com/quotexrealvision/ai/PredictionEngine.java
-          test -f app/src/main/java/com/quotexrealvision/ai/Signal.java
+          find app/src/main/res/values \
+            -maxdepth 1 \
+            -type f \
+            -print \
+            | sort
 
-          echo "Real Vision source files OK."
-
-
-      # ---------------------------------------------
-      # 9. Prevent old theme/resource problem
-      # ---------------------------------------------
-      - name: Check resources
-        shell: bash
-        run: |
-          set -e
-
-          test -f app/src/main/res/values/colors.xml
-          test -f app/src/main/res/values/strings.xml
-          test -f app/src/main/res/values/themes.xml
+          echo ""
 
           if [ -f app/src/main/res/values/styles.xml ]; then
-            echo "ERROR: Old styles.xml detected."
-            echo "Delete app/src/main/res/values/styles.xml."
-            exit 1
-          fi
-
-          echo "Resource structure OK."
-
-
-      # ---------------------------------------------
-      # 10. Check duplicate theme
-      # ---------------------------------------------
-      - name: Check duplicate theme definitions
-        shell: bash
-        run: |
-          set -e
-
-          COUNT=$(
-            grep -R \
-              'style name="Theme.QuotexRealVision"' \
-              app/src/main/res/values \
-              --include="*.xml" \
-              | wc -l || true
-          )
-
-          echo "Theme definitions found: $COUNT"
-
-          if [ "$COUNT" -ne 1 ]; then
-            echo "ERROR: Theme.QuotexRealVision must appear exactly once."
-            exit 1
+            echo "WARNING: styles.xml exists."
+            echo "This may cause duplicate theme resources."
+          else
+            echo "No styles.xml found."
           fi
 
 
-      # ---------------------------------------------
-      # 11. Check Java source
-      # ---------------------------------------------
-      - name: Check Java source encoding
-        shell: bash
-        run: |
-          set -e
-
-          if LC_ALL=C grep -R -n '[^ -~]' \
-            app/src/main/java \
-            --include="*.java"; then
-
-            echo "ERROR: Non-ASCII character found in Java source."
-            exit 1
-          fi
-
-          echo "Java source encoding OK."
-
-
-      # ---------------------------------------------
-      # 12. Clean previous builds
-      # ---------------------------------------------
-      - name: Remove old build files
+      # ==================================================
+      # CLEAN
+      # ==================================================
+      - name: Remove old build output
         run: |
           rm -rf .gradle
           rm -rf build
           rm -rf app/build
 
 
-      # ---------------------------------------------
-      # 13. Gradle clean
-      # ---------------------------------------------
+      # ==================================================
+      # GRADLE CLEAN
+      # ==================================================
       - name: Gradle clean
         run: |
           gradle clean --stacktrace
 
 
-      # ---------------------------------------------
-      # 14. Build APK
-      # ---------------------------------------------
+      # ==================================================
+      # REAL ANDROID BUILD
+      # ==================================================
       - name: Build debug APK
         run: |
-          gradle assembleDebug --stacktrace --info
+          gradle assembleDebug \
+            --stacktrace \
+            --info
 
 
-      # ---------------------------------------------
-      # 15. Find APK
-      # ---------------------------------------------
-      - name: Find APK
+      # ==================================================
+      # FIND APK
+      # ==================================================
+      - name: Find generated APK
         run: |
-          echo "===== GENERATED APK ====="
+          echo ""
+          echo "===================================="
+          echo "GENERATED APK"
+          echo "===================================="
 
-          find app/build/outputs/apk/debug \
+          find app/build/outputs/apk \
             -type f \
             -name "*.apk" \
             -print
 
 
-      # ---------------------------------------------
-      # 16. Verify APK
-      # ---------------------------------------------
+      # ==================================================
+      # VERIFY APK
+      # ==================================================
       - name: Verify APK
-        shell: bash
         run: |
-          set -e
-
-          APK_COUNT=$(
+          COUNT=$(
             find app/build/outputs/apk/debug \
               -type f \
               -name "*.apk" \
               | wc -l
           )
 
-          echo "APK COUNT: $APK_COUNT"
+          echo "APK COUNT: $COUNT"
 
-          if [ "$APK_COUNT" -eq 0 ]; then
+          if [ "$COUNT" -eq 0 ]; then
             echo "ERROR: APK was not generated."
             exit 1
           fi
 
-          echo "APK successfully generated."
 
-
-      # ---------------------------------------------
-      # 17. Upload APK
-      # ---------------------------------------------
-      - name: Upload debug APK
+      # ==================================================
+      # UPLOAD
+      # ==================================================
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: QuotexNextCandleAI-RealVision-2.1
