@@ -1,0 +1,4 @@
+This rebuild was validated against the user's supplied live-chart screenshot.
+The detector test used the chart preview crop from 680979d6-b719-4e39-a74c-3ec34e70ccd1.png and detected 15 candle bodies with detection quality about 86%.
+The pure Java detector/prediction classes compiled successfully with javac.
+The full Android Gradle build still requires GitHub Actions with the Android SDK/Gradle environment.

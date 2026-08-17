@@ -1,0 +1,1 @@
+package com.quotexrealvision.ai; import java.util.List; public final class DetectionResult { public final List<Candle> candles; public final double quality; public final String message; public DetectionResult(List<Candle> c,double q,String m){candles=c;quality=q;message=m;} public boolean usable(){return candles.size()>=10&&quality>=0.60;} }

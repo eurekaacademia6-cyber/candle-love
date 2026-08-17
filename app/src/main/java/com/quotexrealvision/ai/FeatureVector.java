@@ -1,0 +1,1 @@
+package com.quotexrealvision.ai; public final class FeatureVector { public final double[] x=new double[22]; public FeatureVector set(int i,double v){if(i>=0&&i<x.length){if(Double.isNaN(v)||Double.isInfinite(v))v=0;x[i]=Math.max(-8,Math.min(8,v));}return this;} }
